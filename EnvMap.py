@@ -12,7 +12,7 @@ class EnvMap:
         self.GOAL_REWARD = 0
         self.MOVE_REWARD = -1
 
-        self.curr_state = (self.PITCHFORK_STATES, self.OBSTACLE_STATES)
+        self.curr_state = (self.PITCHFORK_STATES, self.CRATE_STATES)
         self.curr_action = None
 
 
@@ -45,25 +45,27 @@ class EnvMap:
 
         entity, direction = self.curr_action
 
-        #If the action moves a crate
+        #Determine state dict
+        state_lookup = {}
         if entity in self.CRATE_STATES:
-            current_position = self.CRATE_STATES[entity]
-            if direction == 'R':
-                new_position = (current_position[0], current_position[1]+1)
-            elif direction == 'L':
-                new_position = (current_position[0], current_position[1]-1)
-            elif direction == 'U':
-                new_position = (current_position[0]-1, current_position[1])
-            elif direction == 'D':
-                new_position = (current_position[0]+1, current_position[1])
+            state_lookup = self.CRATE_STATES
+        elif entity in self.PITCHFORK_STATES:
+            state_lookup = self.PITCHFORK_STATES
 
-            if self.isLegalMove(entity, new_position):
-                self.CRATE_STATES[entity] = new_position
-            else:
-                self.CRATE_STATES[entity] = current_position
+        current_position = state_lookup[entity]
+        if direction == 'R':
+            new_position = (current_position[0], current_position[1]+1)
+        elif direction == 'L':
+            new_position = (current_position[0], current_position[1]-1)
+        elif direction == 'U':
+            new_position = (current_position[0]-1, current_position[1])
+        elif direction == 'D':
+            new_position = (current_position[0]+1, current_position[1])
 
-            print(self.CRATE_STATES)
-            return self.CRATE_STATES[entity]
+        state_lookup[entity] = new_position if self.isLegalMove(entity, new_position) else current_position
+
+        print(state_lookup)
+        return state_lookup[entity]
 
 
     def computeReward(self):
