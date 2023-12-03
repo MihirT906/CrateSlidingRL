@@ -64,7 +64,7 @@ class EnvMap:
 
         state_lookup[entity] = new_position if self.isLegalMove(entity, new_position) else current_position
 
-        print(state_lookup)
+        print(self.curr_state)
         return state_lookup[entity]
 
 
