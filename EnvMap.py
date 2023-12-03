@@ -1,20 +1,42 @@
 import numpy as np
 import random
+from Visualizer import EpisodeSimulator
 
 class EnvMap:
     def __init__(self):
         self.ROWS = 3
         self.COLS = 3
-        self.OBSTACLE_STATES = {'o1': (1,1)}
-        self.CRATE_STATES = {'c1': (0,1)}
-        self.PITCHFORK_STATES = {'p1': (1,0)}
-        self.GOAL_STATES = {'g1': (1,2)}
+        self.OBSTACLE_STATES = {}
+        self.CRATE_STATES = {}
+        self.PITCHFORK_STATES = {}
+        self.GOAL_STATES = {}
         self.GOAL_REWARD = 0
         self.MOVE_REWARD = -1
 
         self.curr_state = (self.PITCHFORK_STATES, self.CRATE_STATES)
         self.curr_action = None
+        
+        self.initial_board = {
+            'obstacle': self.OBSTACLE_STATES.copy(), 
+            'crate': self.CRATE_STATES.copy(), 
+            'pitchfork': self.PITCHFORK_STATES.copy(), 
+            'goal': self.GOAL_STATES.copy()
+        }
+        self.trajectory = []
 
+    def setup_board(self, obstacle_states, crate_states, pitchfork_states, goal_states):
+        self.OBSTACLE_STATES = obstacle_states
+        self.CRATE_STATES = crate_states
+        self.PITCHFORK_STATES = pitchfork_states
+        self.GOAL_STATES = goal_states
+        self.curr_state = (self.PITCHFORK_STATES, self.CRATE_STATES)
+
+        self.initial_board = {
+            'obstacle': self.OBSTACLE_STATES.copy(), 
+            'crate': self.CRATE_STATES.copy(), 
+            'pitchfork': self.PITCHFORK_STATES.copy(), 
+            'goal': self.GOAL_STATES.copy()
+        }
 
     def isLegalMove(self, entity, new_pos):
         #If action results in entity going out of bounds, then the entity stays in the same position
@@ -38,12 +60,12 @@ class EnvMap:
         return True
 
 
-    def computeNextState(self):
+    def computeNextState(self, action=None):
         #Exit early if no action has been specified
-        if self.curr_action is None:
+        if action is None and self.curr_action is None:
             return None
 
-        entity, direction = self.curr_action
+        entity, direction = action if action is not None else self.curr_action
 
         #Determine state dict
         state_lookup = {}
@@ -63,8 +85,7 @@ class EnvMap:
             new_position = (current_position[0]+1, current_position[1])
 
         state_lookup[entity] = new_position if self.isLegalMove(entity, new_position) else current_position
-
-        print(self.curr_state)
+        self.trajectory.append((entity, direction, state_lookup[entity]))
         return state_lookup[entity]
 
 
@@ -74,10 +95,39 @@ class EnvMap:
         return self.MOVE_REWARD
 
     def drawBoard(self):
-        pass
+        ui = EpisodeSimulator(self.ROWS, self.COLS)
+        ui.setup_entities(self.OBSTACLE_STATES, self.CRATE_STATES, self.PITCHFORK_STATES, self.GOAL_STATES)
+        ui.run([])
+        
+    def simulateTrajectory(self):
+        ui = EpisodeSimulator(self.ROWS, self.COLS)
+        ui.setup_entities(self.initial_board['obstacle'], self.initial_board['crate'], self.initial_board['pitchfork'], self.initial_board['goal'])
+        ui.run(self.trajectory)
+
 
 slidingMap = EnvMap()
-slidingMap.curr_action = ('c1', 'D')
-print(slidingMap.computeNextState())
-slidingMap.curr_action = ('c1', 'R')
-print(slidingMap.computeNextState())
+slidingMap.setup_board(
+    {'o1': (1,1)},
+    {'c1': (0,1)},
+    {'p1': (1,0)},
+    {'g1': (1,2)},
+)
+slidingMap.drawBoard() # view board at any given instance
+
+actions = [
+    ('c1', 'D'),
+    ('c1', 'R'),
+    ('p1', 'R'),
+    ('p1', 'U'),
+    ('p1', 'R'),
+    ('p1', 'D'),
+    ('p1', 'R'),
+    ('c1', 'D'),
+    ('c1', 'D'),
+    ('p1', 'R'),
+    ('p1', 'D')
+]
+for action in actions:
+    slidingMap.computeNextState(action)
+
+slidingMap.simulateTrajectory() # replay trajectory
