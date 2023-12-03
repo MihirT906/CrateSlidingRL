@@ -13,7 +13,7 @@ class EnvMap:
         self.MOVE_REWARD = -1
 
         self.curr_state = (self.PITCHFORK_STATES, self.OBSTACLE_STATES)
-        self.curr_action = ('c1', 'D')
+        self.curr_action = None
 
 
     def isLegalMove(self, entity, new_pos):
@@ -39,6 +39,10 @@ class EnvMap:
 
 
     def computeNextState(self):
+        #Exit early if no action has been specified
+        if self.curr_action is None:
+            return None
+
         entity, direction = self.curr_action
 
         #If the action moves a crate
@@ -71,4 +75,7 @@ class EnvMap:
         pass
 
 slidingMap = EnvMap()
+slidingMap.curr_action = ('c1', 'D')
+print(slidingMap.computeNextState())
+slidingMap.curr_action = ('c1', 'R')
 print(slidingMap.computeNextState())
