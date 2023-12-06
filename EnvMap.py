@@ -12,8 +12,8 @@ class EnvMap:
         self.GOAL_STATES = {}
         self.GOAL_REWARD = 0
         self.MOVE_REWARD = -1
+        self.MOVABLE_ENTITIES = []
 
-        self.curr_state = (self.PITCHFORK_STATES, self.CRATE_STATES)
         self.curr_action = None
         
         self.initial_board = {
@@ -29,7 +29,7 @@ class EnvMap:
         self.CRATE_STATES = crate_states
         self.PITCHFORK_STATES = pitchfork_states
         self.GOAL_STATES = goal_states
-        self.curr_state = (self.PITCHFORK_STATES, self.CRATE_STATES)
+        self.MOVABLE_ENTITIES = list(self.PITCHFORK_STATES.keys()) + list(self.CRATE_STATES.keys())
 
         self.initial_board = {
             'obstacle': self.OBSTACLE_STATES.copy(), 
@@ -59,6 +59,16 @@ class EnvMap:
                     return False
         return True
 
+    def getCurrentState(self):
+        combined_map = {**self.PITCHFORK_STATES, **self.CRATE_STATES}
+        return [combined_map[entity] for entity in self.MOVABLE_ENTITIES]
+
+    def updateStates(self, state_tuple):
+        for idx, entity in enumerate(self.MOVABLE_ENTITIES):
+            if entity in self.PITCHFORK_STATES:
+                self.PITCHFORK_STATES[entity] = state_tuple[idx]
+            if entity in self.CRATE_STATES:
+                self.CRATE_STATES[entity] = state_tuple[idx]
 
     def computeNextState(self, action=None):
         #Exit early if no action has been specified

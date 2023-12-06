@@ -4,7 +4,6 @@ from EnvMap import EnvMap
 class SARSA:
     def __init__(self):
         self.slidingMap = EnvMap()
-        #self.curr_state = None
         self.init_distribution = {'p1': {(0,0): 0.25, (0,1): 0.5, (0,2): 0.25}}
         self.epsilon = 0.5
         self.num_of_actions = 8
@@ -27,7 +26,7 @@ class SARSA:
             
         self.slidingMap.setup_board(self.init_board['obstacles'], self.init_board['crates'], pitchfork_state_map, self.init_board['goals'])
         
-        return self.slidingMap.curr_state
+        return self.slidingMap.getCurrentState()
         
     def compute_epsilon_greedy(self, curr_state):
         pass
