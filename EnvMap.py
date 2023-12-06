@@ -113,6 +113,9 @@ class EnvMap:
             return self.GOAL_REWARD
         return self.MOVE_REWARD
 
+    def isTerminalState(self):
+        return self.isPitchforkOnAGoal()
+
     def drawBoard(self):
         ui = EpisodeSimulator(self.ROWS, self.COLS)
         ui.setup_entities(self.OBSTACLE_STATES, self.CRATE_STATES, self.PITCHFORK_STATES, self.GOAL_STATES)
