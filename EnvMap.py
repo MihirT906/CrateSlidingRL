@@ -104,9 +104,12 @@ class EnvMap:
         self.trajectory.append((entity, direction, state_lookup[entity]))
         return state_lookup[entity]
 
+    def isPitchforkOnAGoal(self):
+        goals_pos = self.GOAL_STATES.values()
+        return any([pitchfork_pos in goals_pos for pitchfork_pos in self.PITCHFORK_STATES.values()])
 
     def computeReward(self):
-        if self.curr_state in self.GOAL_STATES.values():
+        if self.isPitchforkOnAGoal():
             return self.GOAL_REWARD
         return self.MOVE_REWARD
 
