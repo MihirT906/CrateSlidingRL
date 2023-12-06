@@ -12,9 +12,13 @@ class SARSA:
         'crates': {'c1': (0,1)},
         'goals': {'g1': (1,2)},
         }
+        self.q_values = {}
         
     def initialise_q_values(self):
-        pass
+        DEFAULT_Q_VALUE = 0.0
+        for state in self.slidingMap.states:
+            for action in self.slidingMap.actions:
+                self.q_values[(state, action)] = DEFAULT_Q_VALUE
     
     def get_initial_state(self):
         pitchfork_state_map = {}
@@ -35,6 +39,7 @@ class SARSA:
     def one_episode(self):
         curr_state = self.get_initial_state()
         print(curr_state)
+        self.initialise_q_values()
     
     
 sarsa = SARSA()

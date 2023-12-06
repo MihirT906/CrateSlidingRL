@@ -1,5 +1,5 @@
 import numpy as np
-import random
+from itertools import combinations
 from Visualizer import EpisodeSimulator
 
 class EnvMap:
@@ -22,6 +22,8 @@ class EnvMap:
             'pitchfork': self.PITCHFORK_STATES.copy(), 
             'goal': self.GOAL_STATES.copy()
         }
+        self.states = []
+        self.actions = ['U', 'R', 'D', 'L']
         self.trajectory = []
 
     def setup_board(self, obstacle_states, crate_states, pitchfork_states, goal_states):
@@ -37,6 +39,10 @@ class EnvMap:
             'pitchfork': self.PITCHFORK_STATES.copy(), 
             'goal': self.GOAL_STATES.copy()
         }
+
+        # get state combinations
+        allowed_states = [(row, col) for row in range(0, self.ROWS) for col in range(0, self.COLS) if (row, col) not in self.OBSTACLE_STATES]
+        self.states = list(combinations(allowed_states, len(self.MOVABLE_ENTITIES)))
 
     def isLegalMove(self, entity, new_pos):
         #If action results in entity going out of bounds, then the entity stays in the same position
