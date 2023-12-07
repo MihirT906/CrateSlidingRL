@@ -1,5 +1,5 @@
 import numpy as np
-from itertools import combinations
+from itertools import permutations
 from Visualizer import EpisodeSimulator
 
 class EnvMap:
@@ -40,9 +40,9 @@ class EnvMap:
             'goal': self.GOAL_STATES.copy()
         }
 
-        # get state combinations
+        # get state permutations
         allowed_states = [(row, col) for row in range(0, self.ROWS) for col in range(0, self.COLS) if (row, col) not in self.OBSTACLE_STATES]
-        self.states = list(combinations(allowed_states, len(self.MOVABLE_ENTITIES)))
+        self.states = list(permutations(allowed_states, len(self.MOVABLE_ENTITIES)))
 
         # get actions
         self.actions = [(entity, action) for entity in self.MOVABLE_ENTITIES for action in ['U', 'R', 'D', 'L']]
@@ -70,7 +70,7 @@ class EnvMap:
 
     def getCurrentState(self):
         combined_map = {**self.PITCHFORK_STATES, **self.CRATE_STATES}
-        return [combined_map[entity] for entity in self.MOVABLE_ENTITIES]
+        return tuple(combined_map[entity] for entity in self.MOVABLE_ENTITIES)
 
     def updateStates(self, state_tuple):
         for idx, entity in enumerate(self.MOVABLE_ENTITIES):

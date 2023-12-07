@@ -9,8 +9,8 @@ class SARSA:
         self.num_of_actions = 8
         self.init_board = {
         'obstacles': {'o1': (1,1)},
-        'crates': {'c1': (0,1)},
-        'goals': {'g1': (1,2)},
+        'crates': {'c1': (1,0)},
+        'goals': {'g1': (2,1)},
         }
         self.q_values = {}
         
