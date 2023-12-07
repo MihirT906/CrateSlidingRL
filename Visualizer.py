@@ -56,7 +56,7 @@ class EpisodeSimulator:
     def move_entity(self, entity, x, y, padx=0, pady=0):
         entity.grid(column=x, row=y, padx=padx, pady=pady)
 
-    def run(self, actions, timestep=500):
+    def run(self, actions, timestep=500, delay=0):
         for idx, action in enumerate(actions):
-            self.root.after(timestep * (idx + 1), self.move_entity, self.ui_mapper[action[0]], action[2][1], action[2][0])
+            self.root.after(timestep * (idx + 1) + delay, self.move_entity, self.ui_mapper[action[0]], action[2][1], action[2][0])
         self.root.mainloop()
