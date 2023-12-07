@@ -27,10 +27,10 @@ class EnvMap:
         self.trajectory = []
 
     def setup_board(self, obstacle_states, crate_states, pitchfork_states, goal_states):
-        self.OBSTACLE_STATES = obstacle_states
-        self.CRATE_STATES = crate_states
-        self.PITCHFORK_STATES = pitchfork_states
-        self.GOAL_STATES = goal_states
+        self.OBSTACLE_STATES = obstacle_states.copy()
+        self.CRATE_STATES = crate_states.copy()
+        self.PITCHFORK_STATES = pitchfork_states.copy()
+        self.GOAL_STATES = goal_states.copy()
         self.MOVABLE_ENTITIES = list(self.PITCHFORK_STATES.keys()) + list(self.CRATE_STATES.keys())
 
         self.initial_board = {
@@ -46,6 +46,7 @@ class EnvMap:
 
         # get actions
         self.actions = [(entity, action) for entity in self.MOVABLE_ENTITIES for action in ['U', 'R', 'D', 'L']]
+        self.trajectory = []
 
     def isLegalMove(self, entity, new_pos):
         #If action results in entity going out of bounds, then the entity stays in the same position
