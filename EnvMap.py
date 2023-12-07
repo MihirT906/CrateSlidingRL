@@ -23,7 +23,7 @@ class EnvMap:
             'goal': self.GOAL_STATES.copy()
         }
         self.states = []
-        self.actions = ['U', 'R', 'D', 'L']
+        self.actions = []
         self.trajectory = []
 
     def setup_board(self, obstacle_states, crate_states, pitchfork_states, goal_states):
@@ -43,6 +43,9 @@ class EnvMap:
         # get state combinations
         allowed_states = [(row, col) for row in range(0, self.ROWS) for col in range(0, self.COLS) if (row, col) not in self.OBSTACLE_STATES]
         self.states = list(combinations(allowed_states, len(self.MOVABLE_ENTITIES)))
+
+        # get actions
+        self.actions = [(entity, action) for entity in self.MOVABLE_ENTITIES for action in ['U', 'R', 'D', 'L']]
 
     def isLegalMove(self, entity, new_pos):
         #If action results in entity going out of bounds, then the entity stays in the same position
