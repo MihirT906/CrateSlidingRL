@@ -102,7 +102,7 @@ class EnvMap:
 
         state_lookup[entity] = new_position if self.isLegalMove(entity, new_position) else current_position
         self.trajectory.append((entity, direction, state_lookup[entity]))
-        return state_lookup[entity]
+        return self.getCurrentState()
 
     def isPitchforkOnAGoal(self):
         goals_pos = self.GOAL_STATES.values()
