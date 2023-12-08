@@ -1,6 +1,6 @@
 __pycache__
 *.png
-!results/*.png
+!results/**/*
 
 # OS/IDE Specific
 .DS_Store

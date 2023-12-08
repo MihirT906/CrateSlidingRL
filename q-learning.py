@@ -7,7 +7,7 @@ from Simulator import Simulator
 random.seed(42)
 
 class QLearning:
-    def __init__(self, num_grid_rows=3, num_grid_cols=3, num_crates=3, obstacles={}, default_q_value=0.0):
+    def __init__(self, num_grid_rows=3, num_grid_cols=3, num_crates=3, obstacles={}, default_q_value=50.0):
         self.num_grid_rows = num_grid_rows
         self.num_grid_cols = num_grid_cols
         self.num_crates = num_crates
@@ -17,7 +17,7 @@ class QLearning:
         self.epsilon = 0.0
         self.discount_param = 1
         self.default_q_value = default_q_value
-        self.slidingMap.MOVE_REWARD = 0
+        self.slidingMap.MOVE_REWARD = -1
         self.slidingMap.GOAL_REWARD = 10
         self.init_board = {
             'obstacles': obstacles,
@@ -150,9 +150,10 @@ def run_trial(qLearner, descriptor="", maxEpisodeCount=500, maxEpisodeLength=500
 # run_trial(qLearner, "basic - large and simple", maxEpisodeCount=1000, show_results=True)
 
 # qLearner = QLearning(num_crates=4)
-# # qLearner.slidingMap.MOVE_REWARD = -1
-# # qLearner.slidingMap.GOAL_REWARD = 100
-# run_trial(qLearner, "basic - complex", show_results=True)
+# run_trial(qLearner, "basic - complex", maxEpisodeCount=800, show_results=True)
+
+# qLearner = QLearning(obstacles={'o1': (1, 1)})
+# run_trial(qLearner, "basic - obstacle", maxEpisodeCount=1000, show_results=True)
 
 # ## Basic Obstacle Experiment - for Alpha ##
 # MAX_EPISODES_COUNTS = 1000
@@ -175,7 +176,71 @@ def run_trial(qLearner, descriptor="", maxEpisodeCount=500, maxEpisodeLength=500
 # compare_lines_lat(cumulative_episode_lengths_by_alpha, range(0, MAX_EPISODES_COUNTS+1), "Timesteps", "Episode Counts", "Q Learning - Timesteps vs Episode Counts - Obstacle - Alpha Variations", alpha_candidates, True)
 
 
-# ## Basic Obstacle Experiment ##
+# # ## Basic Obstacle Experiment - for Default Q_Value ##
+# MAX_EPISODES_COUNTS = 1000
+# default_q_vals_candidates = [0.0, 50, -50, 5e5, -5e5]
+# MAX_TRIALS = len(default_q_vals_candidates)
+# MAX_SAMPLES = 10
+# cumulative_episode_lengths_by_q_vals = []
+# for trial_idx in range(0, MAX_TRIALS):
+#     cumulative_episode_lengths_by_sample = []
+#     for sample_idx in range(0, MAX_SAMPLES):
+#         print(f'[Sample {sample_idx}]')
+#         qLearner = QLearning(obstacles={'o1': (1, 1)})
+#         qLearner.default_q_value = default_q_vals_candidates[trial_idx]
+#         cumulative_episode_lengths, deviation_over_episodes = run_trial(qLearner, "basic - obstacle", maxEpisodeCount=MAX_EPISODES_COUNTS)
+#         cumulative_episode_lengths_by_sample.append(cumulative_episode_lengths)
+#     mean_cumulative_episode_lengths = []
+#     for episode_idx in range(0, MAX_EPISODES_COUNTS+1):
+#         mean_cumulative_episode_lengths.append(sum([cumulative_episode_lengths[episode_idx] for cumulative_episode_lengths in cumulative_episode_lengths_by_sample])/float(MAX_SAMPLES))
+#     cumulative_episode_lengths_by_q_vals.append(mean_cumulative_episode_lengths)
+# compare_lines_lat(cumulative_episode_lengths_by_q_vals, range(0, MAX_EPISODES_COUNTS+1), "Timesteps", "Episode Counts", "Q Learning - Timesteps vs Episode Counts - Obstacle - Default Q Val Variations", default_q_vals_candidates, True)
+
+
+# # ## Basic Obstacle Experiment - for Reward Functions ##
+# MAX_EPISODES_COUNTS = 1000
+# reward_spec_candidates = [(-1, 0), (0, 10), (-1, 10), (-5, 10)]
+# MAX_TRIALS = len(reward_spec_candidates)
+# MAX_SAMPLES = 10
+# cumulative_episode_lengths_by_reward_spec = []
+# for trial_idx in range(0, MAX_TRIALS):
+#     cumulative_episode_lengths_by_sample = []
+#     for sample_idx in range(0, MAX_SAMPLES):
+#         print(f'[Sample {sample_idx}]')
+#         qLearner = QLearning(obstacles={'o1': (1, 1)})
+#         qLearner.slidingMap.MOVE_REWARD = reward_spec_candidates[trial_idx][0]
+#         qLearner.slidingMap.GOAL_REWARD = reward_spec_candidates[trial_idx][1]
+#         cumulative_episode_lengths, deviation_over_episodes = run_trial(qLearner, "basic - obstacle", maxEpisodeCount=MAX_EPISODES_COUNTS)
+#         cumulative_episode_lengths_by_sample.append(cumulative_episode_lengths)
+#     mean_cumulative_episode_lengths = []
+#     for episode_idx in range(0, MAX_EPISODES_COUNTS+1):
+#         mean_cumulative_episode_lengths.append(sum([cumulative_episode_lengths[episode_idx] for cumulative_episode_lengths in cumulative_episode_lengths_by_sample])/float(MAX_SAMPLES))
+#     cumulative_episode_lengths_by_reward_spec.append(mean_cumulative_episode_lengths)
+# compare_lines_lat(cumulative_episode_lengths_by_reward_spec, range(0, MAX_EPISODES_COUNTS+1), "Timesteps", "Episode Counts", "Q Learning - Timesteps vs Episode Counts - Obstacle - Reward Spec Variations", [f"{spec[0]}_{spec[1]}" for spec in reward_spec_candidates], True)
+
+
+# # ## Basic Obstacle Experiment - for Discount Parameter Functions ##
+# MAX_EPISODES_COUNTS = 1000
+# discount_param_candidates = [1, 0.9, 0.75, 0.5, 0.25, 0.0]
+# MAX_TRIALS = len(discount_param_candidates)
+# MAX_SAMPLES = 10
+# cumulative_episode_lengths_by_discount_param = []
+# for trial_idx in range(0, MAX_TRIALS):
+#     cumulative_episode_lengths_by_sample = []
+#     for sample_idx in range(0, MAX_SAMPLES):
+#         print(f'[Sample {sample_idx}]')
+#         qLearner = QLearning(obstacles={'o1': (1, 1)})
+#         qLearner.discount_param = discount_param_candidates[trial_idx]
+#         cumulative_episode_lengths, deviation_over_episodes = run_trial(qLearner, "basic - obstacle", maxEpisodeCount=MAX_EPISODES_COUNTS)
+#         cumulative_episode_lengths_by_sample.append(cumulative_episode_lengths)
+#     mean_cumulative_episode_lengths = []
+#     for episode_idx in range(0, MAX_EPISODES_COUNTS+1):
+#         mean_cumulative_episode_lengths.append(sum([cumulative_episode_lengths[episode_idx] for cumulative_episode_lengths in cumulative_episode_lengths_by_sample])/float(MAX_SAMPLES))
+#     cumulative_episode_lengths_by_discount_param.append(mean_cumulative_episode_lengths)
+# compare_lines_lat(cumulative_episode_lengths_by_discount_param, range(0, MAX_EPISODES_COUNTS+1), "Timesteps", "Episode Counts", "Q Learning - Timesteps vs Episode Counts - Obstacle - Discount Param Variations", discount_param_candidates, True)
+
+
+## Basic Obstacle Experiment ##
 # MAX_SAMPLES = 20
 # MAX_EPISODES_COUNTS = 1000
 # cumulative_episode_lengths_over_samples = []
