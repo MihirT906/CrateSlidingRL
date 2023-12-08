@@ -41,7 +41,7 @@ class QLearning:
             pitchfork_state_map[entity] = chosen_position
         
         crate_state_map = {}
-        allowed_spots = random.sample([(row, col) for row in range(0, self.num_grid_rows) for col in range(1, self.num_grid_cols) if (row, col) not in self.init_board['obstacles']], self.num_crates)
+        allowed_spots = random.sample([(row, col) for row in range(0, self.num_grid_rows) for col in range(1, self.num_grid_cols) if (row, col) not in self.init_board['obstacles'].values()], self.num_crates)
         for i in range(0, self.num_crates):
             crate_id = 'c' + str(i)
             crate_state_map[crate_id] = allowed_spots[i]
