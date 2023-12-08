@@ -41,7 +41,7 @@ class EnvMap:
         }
 
         # get state permutations
-        allowed_states = [(row, col) for row in range(0, self.ROWS) for col in range(0, self.COLS) if (row, col) not in self.OBSTACLE_STATES]
+        allowed_states = [(row, col) for row in range(0, self.ROWS) for col in range(0, self.COLS) if (row, col) not in self.OBSTACLE_STATES.values()]
         self.states = list(permutations(allowed_states, len(self.MOVABLE_ENTITIES)))
 
         # get actions
