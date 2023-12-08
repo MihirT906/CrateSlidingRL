@@ -31,7 +31,7 @@ class EpisodeSimulator:
         square_side = cv.winfo_reqheight()
         cv.create_rectangle(0, 0, square_side, square_side, fill=color)
         if label is not None:
-            cv.create_text(square_side/2, square_side/2, text=label)
+            cv.create_text(square_side/2, square_side/2, text=label, fill='white')
         cv.grid(column=x, row=y, padx=0, pady=0)
         return cv
 
@@ -44,7 +44,7 @@ class EpisodeSimulator:
         for obstacle_id in obstacle_states:
             config[obstacle_id] = (obstacle_states[obstacle_id], 'black', 0, '')
         for crate_id in crate_states:
-            config[crate_id] = (crate_states[crate_id], 'yellow', 30, crate_id)
+            config[crate_id] = (crate_states[crate_id], 'blue', 30, crate_id)
         for pitchfork_id in pitchfork_states:
             config[pitchfork_id] = (pitchfork_states[pitchfork_id], 'red', 30, pitchfork_id)
 
