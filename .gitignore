@@ -1,0 +1,7 @@
+__pycache__
+*.png
+!results/*.png
+
+# OS/IDE Specific
+.DS_Store
+.vscode
