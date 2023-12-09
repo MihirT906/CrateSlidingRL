@@ -7,21 +7,32 @@ class Visualizer:
         self.root = Tk()
         
         grid_padding = 1
+        padx = 20
+        pady = 20
+        status_bar_height = 20
         self.frm = Frame(
             self.root, 
-            height=height * (self.block_size + 2*grid_padding),
+            height=height * (self.block_size + 2*grid_padding) + (status_bar_height + pady),
             width=width * (self.block_size + 2*grid_padding), 
             background='lightgray'
         )
 
         self.frm.grid_propagate(0)
-        self.frm.grid(column=0, row=0, padx=20, pady=20)
+        self.frm.grid(column=0, row=0, padx=padx, pady=pady)
         for i in range(0, width):
             for j in range(0, height):
                 cur_frame = Frame(self.frm, background=self.block_color, height=self.block_size, width=self.block_size)
                 cur_frame.grid(column=i, row=j, padx=grid_padding, pady=grid_padding)
+        
+        label_frame = Frame(self.frm, height=status_bar_height + pady/2, width=width * (self.block_size + 2*grid_padding))
+        label_frame.grid(column=0, row=height, padx=0, pady=pady/2, columnspan=width)
+        status_label = Label(label_frame, text="")
+        status_label.grid(row=0, column=0)
+
+        self.status_label = status_label
 
         self.ui_mapper = {}
+        self.score = 0.0
 
     def create_square(self, side, canvasName, color):
         return canvasName.create_rectangle(0, 0, side, side, fill=color)
@@ -53,10 +64,12 @@ class Visualizer:
             self.ui_mapper[entity_id] = self.addEntity(entity_pos[1], entity_pos[0], config[entity_id][1], config[entity_id][2], config[entity_id][3])
 
 
-    def move_entity(self, entity, x, y, padx=0, pady=0):
+    def move_entity(self, entity, x, y, move, padx=0, pady=0):
+        self.score += move[2]
         entity.grid(column=x, row=y, padx=padx, pady=pady)
+        self.status_label.config(text=f"Entity: {move[0]} Action: {move[1]} Reward: {self.score}")
 
     def run(self, actions, timestep=500, delay=0):
         for idx, action in enumerate(actions):
-            self.root.after(timestep * (idx + 1) + delay, self.move_entity, self.ui_mapper[action[0]], action[2][1], action[2][0])
+            self.root.after(timestep * (idx + 1) + delay, self.move_entity, self.ui_mapper[action[0]], action[2][1], action[2][0], (action[0], action[1], action[3]))
         self.root.mainloop()
