@@ -3,17 +3,23 @@ import math
 import sys
 from EnvMap import EnvMap
 import itertools
+import random
+import math
+import sys
+from EnvMap import EnvMap
+import itertools
 import numpy as np
 from Simulator import Simulator
 
-GAMMA = 0.9
+random.seed(449)
+
 
 class ValueIteration:
-    def __init__(self, num_grid_rows=3, num_grid_cols=3, num_crates=1, obstacles={}):
+    def __init__(self, num_grid_rows=3, num_grid_cols=3, num_crates=1, obstacles={}, gamma=0.9):
         self.num_grid_rows = num_grid_rows
         self.num_grid_cols = num_grid_cols
-        
-        self.num_crates = 3
+        self.gamma = gamma
+        self.num_crates = num_crates
         self.slidingMap = EnvMap(rows=self.num_grid_rows, cols=self.num_grid_cols)
         self.value_matrix = {}
         self.policy_matrix = {}
@@ -52,7 +58,11 @@ class ValueIteration:
         #print(len(self.slidingMap.states)) 72 states
         self.get_all_possible_states()
         for state in self.states:
-            self.value_matrix[state] = self.default_initial_value
+            self.slidingMap.updateStates(state)
+            if(self.slidingMap.isPitchforkOnAGoal()):
+                self.value_matrix[state] = 0
+            else:
+                self.value_matrix[state] = self.default_initial_value
         
         #self.show_value_matrix()
     
@@ -61,24 +71,28 @@ class ValueIteration:
         
     def get_next_state_list_for_one(self, s):
         self.slidingMap.updateStates(s)
-        if(self.slidingMap.isTerminalState()):
+        if self.slidingMap.isTerminalState():
             return []
+        
         action_list = []
         next_state_list = []
+        state_set = set()  
+        
         for idx, entity in enumerate(self.slidingMap.MOVABLE_ENTITIES):
             action_list.append((entity, 'R'))
             action_list.append((entity, 'L'))
             action_list.append((entity, 'U'))
             action_list.append((entity, 'D'))
-
-               
+        
         for action in action_list:
-            next_state_list.append(self.slidingMap.computeNextState(action))
+            next_state = self.slidingMap.computeNextState(action)
+            if next_state not in state_set:
+                next_state_list.append(next_state)
+                state_set.add(next_state)
             self.slidingMap.updateStates(s)
-            # print(action)
-            # print(self.slidingMap.computeNextState(action))
         
         return next_state_list
+
     
     def compute_transition_prob(self,s,a,next_s):
         self.slidingMap.updateStates(s)
@@ -109,7 +123,7 @@ class ValueIteration:
                     
                     p = self.compute_transition_prob(s,a,next_s)
                     R = self.compute_reward(next_s)
-                    t_sum += p*(R + GAMMA*self.value_matrix[next_s])
+                    t_sum += p*(R + self.gamma*self.value_matrix[next_s])
                     
                 if(t_sum > t_max):
                     self.policy_matrix[s] = a
@@ -129,10 +143,12 @@ class ValueIteration:
     
     def find_optimal(self):
         count = 0
+        delta_arr = []
         while True:
             v_curr = self.value_matrix.copy()
             self.iterate()
             delta = max(abs(v_curr[key] - self.value_matrix[key]) for key in v_curr)
+            delta_arr.append(delta)
             #delta = np.max(absolute_diff)
             #print(absolute_diff)
             #print(delta)
@@ -144,6 +160,7 @@ class ValueIteration:
                     
             if(count>300):
                 break
+        return delta_arr, count
     
     def show_policy(self):
         self.sorted_values = dict(sorted(self.value_matrix.items(), key=lambda item: item[1]))
@@ -163,42 +180,7 @@ class ValueIteration:
 
 vi = ValueIteration(obstacles={'o1': (1, 1)})
 optimal_policy = vi.get_optimal_policy()
-
-#vi.show_policy()
-
-
-# print(vi.slidingMap.initial_board)
-# print(vi.slidingMap.MOVABLE_ENTITIES)
-# print([key[0] for key in optimal_policy if key[0] == ((1, 0), (0, 1), (1, 1), (0, 2))])
-#print(optimal_policy[(((1, 0), (0, 1), (1, 1), (0, 2)), ('c1', 'U'))])
 sim = Simulator(vi.slidingMap)
 print(sim.envMap.getCurrentState())
 sim.simulate(optimal_policy)
 sim.visualize(500, 1000)
-
-
-# vi.initialise_value_matrix()
-
-# print(vi.get_next_state_list_for_one(((1, 2), (2, 1))))
-
-# print(len(vi.states))
-
-# print(vi.show_sorted_value_matrix())
-
-
-# vi.find_optimal()
-# print("new value matrix")
-
-# vi.show_sorted_value_matrix()
-# vi.show_policy()
-
-# print(vi.create_policy())
-
-# test_state = ((0,2), (0,0))
-# print(vi.value_matrix[test_state])
-# test_state = ((0,1), (0,0))
-# print(vi.value_matrix[test_state])
-# test_state = ((0,2), (1,2))
-# print(vi.value_matrix[test_state])
-
-
