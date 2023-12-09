@@ -13,8 +13,10 @@ class Simulator:
 
     def simulate(self, policy={}, max_episode_length=100):
         episode_length = 0
+        episode_return = 0
         print('[Simulator] Starting simulation')
         while True:
+            episode_return += self.envMap.computeReward()
             if self.envMap.isTerminalState() or (max_episode_length is not None and episode_length >= max_episode_length):
                 break
             current_state = self.envMap.getCurrentState()
@@ -23,6 +25,7 @@ class Simulator:
             self.envMap.computeNextState(selected_action)
             episode_length += 1
         print(f'[Simulator] Ran for {episode_length} timesteps')
+        return episode_return
 
     def visualize(self, timestep=500, delay=0):
         self.ui.run(self.envMap.trajectory, timestep, delay)

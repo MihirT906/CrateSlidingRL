@@ -11,7 +11,7 @@ import itertools
 import numpy as np
 from Simulator import Simulator
 
-random.seed(449)
+random.seed(42)
 
 
 class ValueIteration:
@@ -178,9 +178,9 @@ class ValueIteration:
         return self.create_policy()
 
 
-vi = ValueIteration(obstacles={'o1': (1, 1)})
-optimal_policy = vi.get_optimal_policy()
-sim = Simulator(vi.slidingMap)
-print(sim.envMap.getCurrentState())
-sim.simulate(optimal_policy)
-sim.visualize(500, 1000)
+# vi = ValueIteration(obstacles={'o1': (1, 1)})
+# optimal_policy = vi.get_optimal_policy()
+# sim = Simulator(vi.slidingMap)
+# print(sim.envMap.getCurrentState())
+# sim.simulate(optimal_policy)
+# sim.visualize(500, 1000)
