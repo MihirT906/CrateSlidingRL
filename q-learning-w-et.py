@@ -282,8 +282,8 @@ def run_trial(qLearner, descriptor="", maxEpisodeCount=150, maxEpisodeLength=500
 
 
 # # Basic Obstacle Experiment ##
-# MAX_SAMPLES = 4
-# MAX_EPISODES_COUNTS = 150
+# MAX_SAMPLES = 5
+# MAX_EPISODES_COUNTS = 175
 # cumulative_episode_lengths_over_samples = []
 # deviation_between_episodes_over_samples = []
 # for sample_idx in range(0, MAX_SAMPLES):
