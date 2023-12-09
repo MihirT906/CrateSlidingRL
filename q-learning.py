@@ -85,6 +85,7 @@ class QLearning:
     def run_episode(self, max_episode_length=None):
         current_state = self.get_initial_state()
         episode_length = 0
+        cumulative_reward = 0
 
         while True:
             if self.slidingMap.isTerminalState() or (max_episode_length is not None and episode_length == max_episode_length):
@@ -94,6 +95,7 @@ class QLearning:
             current_action = self.get_next_action(current_state, self.epsilon)
             next_state = self.get_next_state(current_state, current_action)
             reward = self.get_reward(current_state, current_action, next_state)
+            cumulative_reward += reward
             best_next_action = self.get_next_action(next_state, 0.0) # using a greedy policy here
 
             current_q_value = self.q_values[(current_state, current_action)]
@@ -101,18 +103,20 @@ class QLearning:
 
             self.q_values[(current_state, current_action)] = current_q_value + self.alpha*(reward + self.discount_param*next_q_value - current_q_value)
             current_state = next_state
-        return episode_length
+        return episode_length, cumulative_reward
 
 
 def run_trial(qLearner, descriptor="", maxEpisodeCount=500, maxEpisodeLength=500, show_results=False):
     q_values_hist = []
     episode_length_hist = []
     trajectory_history = []
+    rewards_hist = []
 
     print("[Episode 1] Running...")
     qLearner.epsilon = 1.0
-    episode_length = qLearner.run_episode(maxEpisodeLength)
+    episode_length, cumulative_reward = qLearner.run_episode(maxEpisodeLength)
     episode_length_hist.append(episode_length)
+    rewards_hist.append(cumulative_reward)
     q_values_hist.append(qLearner.q_values.copy())
     trajectory_history.append(qLearner.slidingMap.trajectory)
     if show_results:
@@ -121,8 +125,9 @@ def run_trial(qLearner, descriptor="", maxEpisodeCount=500, maxEpisodeLength=500
     for episode_idx in range(1, maxEpisodeCount):
         print(f"[Episode {episode_idx + 1}] Running...")
         qLearner.epsilon = 1/(episode_idx+1)
-        episode_length = qLearner.run_episode(maxEpisodeLength)
+        episode_length, cumulative_reward = qLearner.run_episode(maxEpisodeLength)
         episode_length_hist.append(episode_length)
+        rewards_hist.append(cumulative_reward)
         q_values_hist.append(qLearner.q_values.copy())
         trajectory_history.append(qLearner.slidingMap.trajectory)
 
@@ -138,7 +143,7 @@ def run_trial(qLearner, descriptor="", maxEpisodeCount=500, maxEpisodeLength=500
 
     if show_results:
         qLearner.slidingMap.simulateTrajectory(100, 2500)
-    return cumulative_episode_lengths, deviation_over_episodes
+    return cumulative_episode_lengths, deviation_over_episodes, rewards_hist
 
 # qLearner = QLearning()
 # run_trial(qLearner, "basic", show_results=True)
@@ -239,22 +244,27 @@ def run_trial(qLearner, descriptor="", maxEpisodeCount=500, maxEpisodeLength=500
 # compare_lines_lat(cumulative_episode_lengths_by_discount_param, range(0, MAX_EPISODES_COUNTS+1), "Timesteps", "Episode Counts", "Q Learning - Timesteps vs Episode Counts - Obstacle - Discount Param Variations", discount_param_candidates, True)
 
 
-## Basic Obstacle Experiment ##
+# # Basic Obstacle Experiment ##
 # MAX_SAMPLES = 20
 # MAX_EPISODES_COUNTS = 1000
 # cumulative_episode_lengths_over_samples = []
 # deviation_between_episodes_over_samples = []
+# rewards_hist_over_samples = []
 # for sample_idx in range(0, MAX_SAMPLES):
 #     print(f'[Sample {sample_idx}]')
 #     qLearner = QLearning(obstacles={'o1': (1, 1)})
-#     cumulative_episode_lengths, deviation_over_episodes = run_trial(qLearner, "basic - obstacle", maxEpisodeCount=MAX_EPISODES_COUNTS)
+#     cumulative_episode_lengths, deviation_over_episodes, rewards_hist = run_trial(qLearner, "basic - obstacle", maxEpisodeCount=MAX_EPISODES_COUNTS)
 #     cumulative_episode_lengths_over_samples.append(cumulative_episode_lengths)
 #     deviation_between_episodes_over_samples.append(deviation_over_episodes)
+#     rewards_hist_over_samples.append(rewards_hist)
 # mean_cumulative_episode_lengths = []
 # mean_deviation_between_samples = []
+# mean_rewards_hist = []
 # for episode_idx in range(0, MAX_EPISODES_COUNTS):
 #     mean_cumulative_episode_lengths.append(sum([cumulative_episode_lengths[episode_idx] for cumulative_episode_lengths in cumulative_episode_lengths_over_samples])/float(MAX_SAMPLES))
+#     mean_rewards_hist.append(sum([rewards_hist[episode_idx] for rewards_hist in rewards_hist_over_samples])/float(MAX_SAMPLES)) 
 # for episode_idx in range(0, MAX_EPISODES_COUNTS-1):
 #     mean_deviation_between_samples.append(sum([deviation_over_episodes[episode_idx] for deviation_over_episodes in deviation_between_episodes_over_samples])/float(MAX_SAMPLES))
 # plot_line(mean_cumulative_episode_lengths, range(0, MAX_EPISODES_COUNTS), "Timesteps", "Episode Counts", "Q Learning - Cumulative timesteps vs Episode Counts - Obstacle", True)
 # plot_line(range(1, MAX_EPISODES_COUNTS), mean_deviation_between_samples, "Episode Counts", "MSE Difference from previous epsiode q values", "Q Learning - MSE difference from previous Q Values - Obstacle", True)
+# plot_line(range(0, MAX_EPISODES_COUNTS), mean_rewards_hist, "Episode Counts", "Average Rewards", "Q Learning - Average Rewards - Obstacle", True)
