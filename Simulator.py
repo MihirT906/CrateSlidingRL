@@ -11,11 +11,11 @@ class Simulator:
         self.envMap.setup_board(envMap.initial_board['obstacle'], envMap.initial_board['crate'], envMap.initial_board['pitchfork'], envMap.initial_board['goal'])
         self.ui.setup_entities(self.envMap.initial_board['obstacle'], self.envMap.initial_board['crate'], self.envMap.initial_board['pitchfork'], self.envMap.initial_board['goal'])
 
-    def simulate(self, policy={}, max_episode_length=None):
+    def simulate(self, policy={}, max_episode_length=100):
         episode_length = 0
         print('[Simulator] Starting simulation')
         while True:
-            if self.envMap.isTerminalState() or (max_episode_length is not None and episode_length < max_episode_length):
+            if self.envMap.isTerminalState() or (max_episode_length is not None and episode_length >= max_episode_length):
                 break
             current_state = self.envMap.getCurrentState()
             possible_actions, probs = zip(*[(key[1], policy[key]) for key in policy if key[0] == current_state])
