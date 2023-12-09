@@ -1,22 +1,22 @@
 import random
 import math
 from EnvMap import EnvMap
-from plot import plot_line
+from plot import plot_line, compare_lines_lat, mean_squared_error
 
 random.seed(42)
 
 class SARSA:
-    def __init__(self, num_grid_rows=3, num_grid_cols=3, num_crates=3, obstacles={}):
+    def __init__(self, num_grid_rows=3, num_grid_cols=3, num_crates=3, obstacles={}, default_q_value=5e3):
         self.num_grid_rows = num_grid_rows
         self.num_grid_cols = num_grid_cols
         self.num_crates = num_crates
         self.slidingMap = EnvMap(rows=self.num_grid_rows, cols=self.num_grid_cols)
         self.init_pitchfork_distribution = {'p1': {(0, 0): 0.2, (1, 0): 0.2, (2, 0): 0.2, (3, 0): 0 if self.num_grid_rows < 4 else 0.2}}
-        self.alpha = 4e-1
+        self.alpha = 5e-1
         self.epsilon = 0.0
         self.discount_param = 1
-        self.default_q_value = 0.0
-        self.slidingMap.MOVE_REWARD = 0
+        self.default_q_value = default_q_value
+        self.slidingMap.MOVE_REWARD = -1
         self.slidingMap.GOAL_REWARD = 10
         self.init_board = {
             'obstacles': obstacles,
@@ -75,6 +75,12 @@ class SARSA:
     def get_reward(self, _current_state, _current_action, _next_state):
         return self.slidingMap.computeReward()
 
+    def get_policy(self):
+        policy = {}
+        for state in self.slidingMap.states:
+            policy[(state, self.get_next_action(state, 0.0))] = 1.0
+        return policy
+
     def run_episode(self, max_episode_length=None):
         current_state = self.get_initial_state()
         episode_length = 0
@@ -98,35 +104,40 @@ class SARSA:
         return episode_length
 
 
-def run_trial(qLearner, descriptor="", maxEpisodeCount=500, maxEpisodeLength=500, show_results=False):
+def run_trial(sarsaLearner, descriptor="", maxEpisodeCount=500, maxEpisodeLength=500, show_results=False):
     q_values_hist = []
     episode_length_hist = []
     trajectory_history = []
 
     print("[Episode 1] Running...")
-    qLearner.epsilon = 1.0
-    episode_length = qLearner.run_episode(maxEpisodeLength)
+    sarsaLearner.epsilon = 1.0
+    episode_length = sarsaLearner.run_episode(maxEpisodeLength)
     episode_length_hist.append(episode_length)
-    q_values_hist.append(qLearner.q_values.copy())
-    trajectory_history.append(qLearner.slidingMap.trajectory)
+    q_values_hist.append(sarsaLearner.q_values.copy())
+    trajectory_history.append(sarsaLearner.slidingMap.trajectory)
     if show_results:
-        qLearner.slidingMap.simulateTrajectory(100, 2500)
+        sarsaLearner.slidingMap.simulateTrajectory(100, 2500)
 
     for episode_idx in range(1, maxEpisodeCount):
         print(f"[Episode {episode_idx + 1}] Running...")
-        qLearner.epsilon = 1/(episode_idx+1)
-        episode_length = qLearner.run_episode(maxEpisodeLength)
+        sarsaLearner.epsilon = 1/(episode_idx+1)
+        episode_length = sarsaLearner.run_episode(maxEpisodeLength)
         episode_length_hist.append(episode_length)
-        q_values_hist.append(qLearner.q_values.copy())
-        trajectory_history.append(qLearner.slidingMap.trajectory)
+        q_values_hist.append(sarsaLearner.q_values.copy())
+        trajectory_history.append(sarsaLearner.slidingMap.trajectory)
 
     cumulative_episode_lengths = [0]
     for episode_length in episode_length_hist:
         cumulative_episode_lengths.append(cumulative_episode_lengths[-1] + episode_length)
 
-    plot_line(cumulative_episode_lengths, range(0, maxEpisodeCount+1), "Timesteps", "Episode Counts", f"SARSA - Timesteps vs Episode Counts ({descriptor})", show_results)
+    deviation_over_episodes = []
+    for idx in range(1, len(q_values_hist)):
+        deviation_over_episodes.append(mean_squared_error(q_values_hist[idx], q_values_hist[idx-1]))
+
     if show_results:
-        qLearner.slidingMap.simulateTrajectory(100, 2500)
+        plot_line(cumulative_episode_lengths, range(0, maxEpisodeCount+1), "Timesteps", "Episode Counts", f"SARSA - Timesteps vs Episode Counts ({descriptor})", show_results)
+        sarsaLearner.slidingMap.simulateTrajectory(100, 2500)
+    return cumulative_episode_lengths, deviation_over_episodes
 
 # sarsaLearner = SARSA()
 # run_trial(sarsaLearner, "basic", show_results=True)
@@ -140,4 +151,109 @@ def run_trial(qLearner, descriptor="", maxEpisodeCount=500, maxEpisodeLength=500
 # run_trial(sarsaLearner, "basic - complex", show_results=True)
 
 # sarsaLearner = SARSA(obstacles={'o1': (1, 1)})
-# run_trial(sarsaLearner, "basic - obstacle", show_results=True)
+# run_trial(sarsaLearner, "basic - obstacle", show_results=False)
+
+# ## Basic Obstacle Experiment - for Alpha ##
+# MAX_EPISODES_COUNTS = 1000
+# alpha_candidates = [1, 9e-1, 5e-1, 1e-1, 5e-2, 1e-2, 5e-3, 1e-3, 5e-4]
+# MAX_TRIALS = len(alpha_candidates)
+# MAX_SAMPLES = 10
+# cumulative_episode_lengths_by_alpha = []
+# for trial_idx in range(0, MAX_TRIALS):
+#     cumulative_episode_lengths_by_sample = []
+#     for sample_idx in range(0, MAX_SAMPLES):
+#         print(f'[Sample {sample_idx}]')
+#         sarsaLearner = SARSA(obstacles={'o1': (1, 1)})
+#         sarsaLearner.alpha = alpha_candidates[trial_idx]
+#         cumulative_episode_lengths, deviation_over_episodes = run_trial(sarsaLearner, "basic - obstacle", maxEpisodeCount=MAX_EPISODES_COUNTS)
+#         cumulative_episode_lengths_by_sample.append(cumulative_episode_lengths)
+#     mean_cumulative_episode_lengths = []
+#     for episode_idx in range(0, MAX_EPISODES_COUNTS+1):
+#         mean_cumulative_episode_lengths.append(sum([cumulative_episode_lengths[episode_idx] for cumulative_episode_lengths in cumulative_episode_lengths_by_sample])/float(MAX_SAMPLES))
+#     cumulative_episode_lengths_by_alpha.append(mean_cumulative_episode_lengths)
+# compare_lines_lat(cumulative_episode_lengths_by_alpha, range(0, MAX_EPISODES_COUNTS+1), "Timesteps", "Episode Counts", "SARSA - Timesteps vs Episode Counts - Obstacle - Alpha Variations", alpha_candidates, False)
+
+
+# ## Basic Obstacle Experiment - for Default Q_Value ##
+# MAX_EPISODES_COUNTS = 1000
+# default_q_vals_candidates = [0.0, 50, -50, 5e3, -5e3, 5e5, -5e5]
+# MAX_TRIALS = len(default_q_vals_candidates)
+# MAX_SAMPLES = 10
+# cumulative_episode_lengths_by_q_vals = []
+# for trial_idx in range(0, MAX_TRIALS):
+#     cumulative_episode_lengths_by_sample = []
+#     for sample_idx in range(0, MAX_SAMPLES):
+#         print(f'[Sample {sample_idx}]')
+#         sarsaLearner = SARSA(obstacles={'o1': (1, 1)}, default_q_value=default_q_vals_candidates[trial_idx])
+#         cumulative_episode_lengths, deviation_over_episodes = run_trial(sarsaLearner, "basic - obstacle", maxEpisodeCount=MAX_EPISODES_COUNTS)
+#         cumulative_episode_lengths_by_sample.append(cumulative_episode_lengths)
+#     mean_cumulative_episode_lengths = []
+#     for episode_idx in range(0, MAX_EPISODES_COUNTS+1):
+#         mean_cumulative_episode_lengths.append(sum([cumulative_episode_lengths[episode_idx] for cumulative_episode_lengths in cumulative_episode_lengths_by_sample])/float(MAX_SAMPLES))
+#     cumulative_episode_lengths_by_q_vals.append(mean_cumulative_episode_lengths)
+# compare_lines_lat(cumulative_episode_lengths_by_q_vals, range(0, MAX_EPISODES_COUNTS+1), "Timesteps", "Episode Counts", "SARSA - Timesteps vs Episode Counts - Obstacle - Default Q Val Variations", default_q_vals_candidates, False)
+
+
+# ## Basic Obstacle Experiment - for Reward Functions ##
+# MAX_EPISODES_COUNTS = 1000
+# reward_spec_candidates = [(-1, 0), (0, 10), (-1, 10), (-5, 10)]
+# MAX_TRIALS = len(reward_spec_candidates)
+# MAX_SAMPLES = 10
+# cumulative_episode_lengths_by_reward_spec = []
+# for trial_idx in range(0, MAX_TRIALS):
+#     cumulative_episode_lengths_by_sample = []
+#     for sample_idx in range(0, MAX_SAMPLES):
+#         print(f'[Sample {sample_idx}]')
+#         sarsaLearner = SARSA(obstacles={'o1': (1, 1)})
+#         sarsaLearner.slidingMap.MOVE_REWARD = reward_spec_candidates[trial_idx][0]
+#         sarsaLearner.slidingMap.GOAL_REWARD = reward_spec_candidates[trial_idx][1]
+#         cumulative_episode_lengths, deviation_over_episodes = run_trial(sarsaLearner, "basic - obstacle", maxEpisodeCount=MAX_EPISODES_COUNTS)
+#         cumulative_episode_lengths_by_sample.append(cumulative_episode_lengths)
+#     mean_cumulative_episode_lengths = []
+#     for episode_idx in range(0, MAX_EPISODES_COUNTS+1):
+#         mean_cumulative_episode_lengths.append(sum([cumulative_episode_lengths[episode_idx] for cumulative_episode_lengths in cumulative_episode_lengths_by_sample])/float(MAX_SAMPLES))
+#     cumulative_episode_lengths_by_reward_spec.append(mean_cumulative_episode_lengths)
+# compare_lines_lat(cumulative_episode_lengths_by_reward_spec, range(0, MAX_EPISODES_COUNTS+1), "Timesteps", "Episode Counts", "SARSA - Timesteps vs Episode Counts - Obstacle - Reward Spec Variations", [f"{spec[0]}_{spec[1]}" for spec in reward_spec_candidates], False)
+
+
+# ## Basic Obstacle Experiment - for Discount Parameter Functions ##
+# MAX_EPISODES_COUNTS = 1000
+# discount_param_candidates = [1, 0.9, 0.75, 0.5, 0.25, 0.0]
+# MAX_TRIALS = len(discount_param_candidates)
+# MAX_SAMPLES = 10
+# cumulative_episode_lengths_by_discount_param = []
+# for trial_idx in range(0, MAX_TRIALS):
+#     cumulative_episode_lengths_by_sample = []
+#     for sample_idx in range(0, MAX_SAMPLES):
+#         print(f'[Sample {sample_idx}]')
+#         sarsaLearner = SARSA(obstacles={'o1': (1, 1)})
+#         sarsaLearner.discount_param = discount_param_candidates[trial_idx]
+#         cumulative_episode_lengths, deviation_over_episodes = run_trial(sarsaLearner, "basic - obstacle", maxEpisodeCount=MAX_EPISODES_COUNTS)
+#         cumulative_episode_lengths_by_sample.append(cumulative_episode_lengths)
+#     mean_cumulative_episode_lengths = []
+#     for episode_idx in range(0, MAX_EPISODES_COUNTS+1):
+#         mean_cumulative_episode_lengths.append(sum([cumulative_episode_lengths[episode_idx] for cumulative_episode_lengths in cumulative_episode_lengths_by_sample])/float(MAX_SAMPLES))
+#     cumulative_episode_lengths_by_discount_param.append(mean_cumulative_episode_lengths)
+# compare_lines_lat(cumulative_episode_lengths_by_discount_param, range(0, MAX_EPISODES_COUNTS+1), "Timesteps", "Episode Counts", "SARSA - Timesteps vs Episode Counts - Obstacle - Discount Param Variations", discount_param_candidates, False)
+
+
+# # Basic Obstacle Experiment ##
+# MAX_SAMPLES = 20
+# MAX_EPISODES_COUNTS = 1000
+# cumulative_episode_lengths_over_samples = []
+# deviation_between_episodes_over_samples = []
+# for sample_idx in range(0, MAX_SAMPLES):
+#     print(f'[Sample {sample_idx}]')
+#     sarsaLearner = SARSA(obstacles={'o1': (1, 1)})
+#     cumulative_episode_lengths, deviation_over_episodes = run_trial(sarsaLearner, "basic - obstacle", maxEpisodeCount=MAX_EPISODES_COUNTS)
+#     cumulative_episode_lengths_over_samples.append(cumulative_episode_lengths)
+#     deviation_between_episodes_over_samples.append(deviation_over_episodes)
+# mean_cumulative_episode_lengths = []
+# mean_deviation_between_samples = []
+# for episode_idx in range(0, MAX_EPISODES_COUNTS):
+#     mean_cumulative_episode_lengths.append(sum([cumulative_episode_lengths[episode_idx] for cumulative_episode_lengths in cumulative_episode_lengths_over_samples])/float(MAX_SAMPLES))
+# for episode_idx in range(0, MAX_EPISODES_COUNTS-1):
+#     mean_deviation_between_samples.append(sum([deviation_over_episodes[episode_idx] for deviation_over_episodes in deviation_between_episodes_over_samples])/float(MAX_SAMPLES))
+# plot_line(mean_cumulative_episode_lengths, range(0, MAX_EPISODES_COUNTS), "Timesteps", "Episode Counts", "SARSA - Cumulative timesteps vs Episode Counts - Obstacle", False)
+# plot_line(range(1, MAX_EPISODES_COUNTS), mean_deviation_between_samples, "Episode Counts", "MSE Difference from previous epsiode q values", "SARSA - MSE difference from previous Q Values - Obstacle", False)
+
