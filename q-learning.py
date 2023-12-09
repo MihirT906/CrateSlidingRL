@@ -178,7 +178,7 @@ def run_trial(qLearner, descriptor="", maxEpisodeCount=500, maxEpisodeLength=500
 
 # # ## Basic Obstacle Experiment - for Default Q_Value ##
 # MAX_EPISODES_COUNTS = 1000
-# default_q_vals_candidates = [0.0, 50, -50, 5e5, -5e5]
+# default_q_vals_candidates = [0.0, 50, -50, 5e3, -5e3, 5e5, -5e5]
 # MAX_TRIALS = len(default_q_vals_candidates)
 # MAX_SAMPLES = 10
 # cumulative_episode_lengths_by_q_vals = []
@@ -186,8 +186,7 @@ def run_trial(qLearner, descriptor="", maxEpisodeCount=500, maxEpisodeLength=500
 #     cumulative_episode_lengths_by_sample = []
 #     for sample_idx in range(0, MAX_SAMPLES):
 #         print(f'[Sample {sample_idx}]')
-#         qLearner = QLearning(obstacles={'o1': (1, 1)})
-#         qLearner.default_q_value = default_q_vals_candidates[trial_idx]
+#         qLearner = QLearning(obstacles={'o1': (1, 1)}, default_q_value=default_q_vals_candidates[trial_idx])
 #         cumulative_episode_lengths, deviation_over_episodes = run_trial(qLearner, "basic - obstacle", maxEpisodeCount=MAX_EPISODES_COUNTS)
 #         cumulative_episode_lengths_by_sample.append(cumulative_episode_lengths)
 #     mean_cumulative_episode_lengths = []
