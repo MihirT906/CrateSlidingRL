@@ -1,6 +1,6 @@
 import numpy as np
 from itertools import permutations
-from Visualizer import EpisodeSimulator
+from Visualizer import Visualizer
 
 class EnvMap:
     def __init__(self, rows=3, cols=3):
@@ -121,12 +121,12 @@ class EnvMap:
         return self.isPitchforkOnAGoal()
 
     def drawBoard(self):
-        ui = EpisodeSimulator(self.ROWS, self.COLS)
+        ui = Visualizer(self.ROWS, self.COLS)
         ui.setup_entities(self.OBSTACLE_STATES, self.CRATE_STATES, self.PITCHFORK_STATES, self.GOAL_STATES)
         ui.run([])
         
     def simulateTrajectory(self, timestep=500, delay=0):
-        ui = EpisodeSimulator(self.ROWS, self.COLS)
+        ui = Visualizer(self.ROWS, self.COLS)
         ui.setup_entities(self.initial_board['obstacle'], self.initial_board['crate'], self.initial_board['pitchfork'], self.initial_board['goal'])
         ui.run(self.trajectory, timestep, delay)
 

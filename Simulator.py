@@ -1,5 +1,5 @@
 from EnvMap import EnvMap
-from Visualizer import EpisodeSimulator
+from Visualizer import Visualizer
 import random
 
 random.seed(42)
@@ -7,7 +7,7 @@ random.seed(42)
 class Simulator:
     def __init__(self, envMap):
         self.envMap = EnvMap(rows=envMap.ROWS, cols=envMap.COLS)
-        self.ui = EpisodeSimulator(self.envMap.ROWS, self.envMap.COLS)
+        self.ui = Visualizer(self.envMap.ROWS, self.envMap.COLS)
         self.envMap.setup_board(envMap.initial_board['obstacle'], envMap.initial_board['crate'], envMap.initial_board['pitchfork'], envMap.initial_board['goal'])
         self.ui.setup_entities(self.envMap.initial_board['obstacle'], self.envMap.initial_board['crate'], self.envMap.initial_board['pitchfork'], self.envMap.initial_board['goal'])
 

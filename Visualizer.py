@@ -1,6 +1,6 @@
 from tkinter import *
 
-class EpisodeSimulator:
+class Visualizer:
     def __init__(self, height, width):
         self.block_color = 'white'
         self.block_size = 75
